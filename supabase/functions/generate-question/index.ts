@@ -85,7 +85,8 @@ O campo correctAnswer é o índice (0-4) da alternativa correta.`;
     });
   } catch (error) {
     console.error("Error in generate-question:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

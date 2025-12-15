@@ -37,7 +37,7 @@ const QuestionLab = () => {
       const { data } = await query.limit(10);
       if (data && data.length > 0) {
         const random = data[Math.floor(Math.random() * data.length)];
-        setQuestion(random.content as Question);
+        setQuestion(random.content as unknown as Question);
         setFromPool(true);
         setSelectedAnswer(null);
         setShowResult(false);
