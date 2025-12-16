@@ -16,13 +16,13 @@ import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 
 const navItems = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true },
-  { to: "/lab", icon: Beaker, label: "Questões" },
-  { to: "/essay", icon: FileText, label: "Redação", premium: true },
-  { to: "/flashcards", icon: Brain, label: "Flashcards", premium: true },
-  { to: "/chat", icon: MessageSquare, label: "Chat IA" },
-  { to: "/planner", icon: CalendarDays, label: "Agenda" },
-  { to: "/focus", icon: Timer, label: "Focus Room" },
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", end: true },
+  { to: "/dashboard/lab", icon: Beaker, label: "Questões" },
+  { to: "/dashboard/essay", icon: FileText, label: "Redação", premium: true },
+  { to: "/dashboard/flashcards", icon: Brain, label: "Flashcards", premium: true },
+  { to: "/dashboard/chat", icon: MessageSquare, label: "Chat IA" },
+  { to: "/dashboard/planner", icon: CalendarDays, label: "Agenda" },
+  { to: "/dashboard/focus", icon: Timer, label: "Focus Room" },
 ];
 
 const Sidebar = () => {
