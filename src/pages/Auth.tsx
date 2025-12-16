@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, BookOpen, Sparkles } from "lucide-react";
+import { Loader2, Brain, Sparkles, ArrowLeft } from "lucide-react";
 import { z } from "zod";
 
 const authSchema = z.object({
@@ -29,7 +29,7 @@ const Auth = () => {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,13 +77,22 @@ const Auth = () => {
       <div className="absolute top-20 left-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl float" />
       <div className="absolute bottom-20 right-20 w-96 h-96 bg-secondary/20 rounded-full blur-3xl float" style={{ animationDelay: '-3s' }} />
 
+      {/* Back to Home */}
+      <Link 
+        to="/" 
+        className="absolute top-6 left-6 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors z-20"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        <span className="text-sm">Voltar</span>
+      </Link>
+
       <div className="w-full max-w-md scale-in relative z-10">
         {/* Logo & Title */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl glass mb-6">
-            <BookOpen className="h-10 w-10 text-primary" />
+            <Brain className="h-10 w-10 text-primary" />
           </div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Primo</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Nexus Study</h1>
           <p className="text-muted-foreground">Seu companheiro de estudos inteligente</p>
         </div>
 

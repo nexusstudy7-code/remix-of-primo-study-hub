@@ -15,19 +15,19 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useProfile } from "@/hooks/useProfile";
 
 const mainNavItems = [
-  { to: "/", icon: LayoutDashboard, label: "Home", end: true },
-  { to: "/lab", icon: Beaker, label: "Questões" },
-  { to: "/focus", icon: Timer, label: "Foco" },
+  { to: "/dashboard", icon: LayoutDashboard, label: "Home", end: true },
+  { to: "/dashboard/lab", icon: Beaker, label: "Questões" },
+  { to: "/dashboard/focus", icon: Timer, label: "Foco" },
 ];
 
 const allNavItems = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true },
-  { to: "/lab", icon: Beaker, label: "Questões" },
-  { to: "/essay", icon: FileText, label: "Redação", premium: true },
-  { to: "/flashcards", icon: Brain, label: "Flashcards", premium: true },
-  { to: "/chat", icon: MessageSquare, label: "Chat IA" },
-  { to: "/planner", icon: CalendarDays, label: "Agenda" },
-  { to: "/focus", icon: Timer, label: "Focus Room" },
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", end: true },
+  { to: "/dashboard/lab", icon: Beaker, label: "Questões" },
+  { to: "/dashboard/essay", icon: FileText, label: "Redação", premium: true },
+  { to: "/dashboard/flashcards", icon: Brain, label: "Flashcards", premium: true },
+  { to: "/dashboard/chat", icon: MessageSquare, label: "Chat IA" },
+  { to: "/dashboard/planner", icon: CalendarDays, label: "Agenda" },
+  { to: "/dashboard/focus", icon: Timer, label: "Focus Room" },
 ];
 
 const MobileNav = () => {
