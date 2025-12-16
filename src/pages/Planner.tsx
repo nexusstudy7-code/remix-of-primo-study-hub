@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { format, addDays, isSameDay, startOfDay } from "date-fns";
+import { format, addDays, isSameDay, startOfDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
   Sparkles, 
@@ -15,7 +15,12 @@ import {
   Clock,
   AlertTriangle,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Plus,
+  BookOpen,
+  GraduationCap,
+  Trash2,
+  MapPin
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -23,6 +28,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { createStudyPlan } from "@/services/aiService";
 import PremiumGuard from "@/components/PremiumGuard";
@@ -35,6 +42,15 @@ interface StudyTask {
   date: string | null;
   is_done: boolean | null;
   duration_minutes: number | null;
+}
+
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start_time: string;
+  end_time: string | null;
+  location: string | null;
+  type: string | null;
 }
 
 const subjectColors: Record<string, string> = {
@@ -52,6 +68,22 @@ const subjectColors: Record<string, string> = {
   "Inglês": "bg-indigo-500/30 border-indigo-500/50 text-indigo-300",
 };
 
+const eventTypeColors: Record<string, string> = {
+  "prova": "bg-red-500/30 border-red-500/50 text-red-300",
+  "simulado": "bg-purple-500/30 border-purple-500/50 text-purple-300",
+  "trabalho": "bg-amber-500/30 border-amber-500/50 text-amber-300",
+  "aula": "bg-blue-500/30 border-blue-500/50 text-blue-300",
+  "outro": "bg-gray-500/30 border-gray-500/50 text-gray-300",
+};
+
+const eventTypeLabels: Record<string, string> = {
+  "prova": "Prova",
+  "simulado": "Simulado",
+  "trabalho": "Trabalho",
+  "aula": "Aula Extra",
+  "outro": "Outro",
+};
+
 const getSubjectColor = (subject: string) => {
   for (const [key, value] of Object.entries(subjectColors)) {
     if (subject.toLowerCase().includes(key.toLowerCase())) return value;
@@ -59,19 +91,29 @@ const getSubjectColor = (subject: string) => {
   return "bg-primary/30 border-primary/50 text-primary";
 };
 
+const getEventColor = (type: string | null) => {
+  return eventTypeColors[type || "outro"] || eventTypeColors["outro"];
+};
+
 const Planner = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const [tasks, setTasks] = useState<StudyTask[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
+  const [showEventModal, setShowEventModal] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [activeTab, setActiveTab] = useState("cronograma");
 
   const today = startOfDay(new Date());
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(today, i));
 
   useEffect(() => {
-    if (user) fetchTasks();
+    if (user) {
+      fetchTasks();
+      fetchEvents();
+    }
   }, [user]);
 
   const fetchTasks = async () => {
@@ -93,6 +135,25 @@ const Planner = () => {
       setTasks(data || []);
     }
     setLoading(false);
+  };
+
+  const fetchEvents = async () => {
+    const startDate = format(today, "yyyy-MM-dd");
+    const endDate = format(addDays(today, 30), "yyyy-MM-dd");
+    
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .eq("user_id", user?.id)
+      .gte("start_time", startDate)
+      .lte("start_time", endDate + "T23:59:59")
+      .order("start_time", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching events:", error);
+    } else {
+      setEvents(data || []);
+    }
   };
 
   const toggleTask = async (taskId: string, currentState: boolean | null) => {
@@ -121,8 +182,26 @@ const Planner = () => {
     }
   };
 
+  const deleteEvent = async (eventId: string) => {
+    const { error } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", eventId);
+
+    if (error) {
+      toast.error("Erro ao excluir evento");
+      return;
+    }
+
+    setEvents(prev => prev.filter(e => e.id !== eventId));
+    toast.success("Evento excluído");
+  };
+
   const getTasksForDay = (day: Date) => 
     tasks.filter(t => t.date && isSameDay(new Date(t.date + "T12:00:00"), day));
+
+  const getEventsForDay = (day: Date) => 
+    events.filter(e => isSameDay(parseISO(e.start_time), day));
 
   const completedTasks = tasks.filter(t => t.is_done).length;
   const totalTasks = tasks.length;
@@ -143,7 +222,6 @@ const Planner = () => {
       }
 
       if (result.data && result.data.length > 0) {
-        // Clear existing tasks for this week
         await supabase
           .from("study_tasks")
           .delete()
@@ -151,7 +229,6 @@ const Planner = () => {
           .gte("date", format(today, "yyyy-MM-dd"))
           .lte("date", format(addDays(today, 7), "yyyy-MM-dd"));
 
-        // Insert new tasks
         const tasksToInsert = result.data.map((task) => ({
           user_id: user.id,
           subject: task.subject,
@@ -178,6 +255,31 @@ const Planner = () => {
     }
   };
 
+  const handleAddEvent = async (eventData: { title: string; date: string; time: string; type: string; location: string }) => {
+    if (!user) return;
+
+    const startTime = `${eventData.date}T${eventData.time}:00`;
+    
+    const { error } = await supabase
+      .from("events")
+      .insert({
+        user_id: user.id,
+        title: eventData.title,
+        start_time: startTime,
+        type: eventData.type,
+        location: eventData.location || null
+      });
+
+    if (error) {
+      toast.error("Erro ao adicionar evento");
+      return;
+    }
+
+    await fetchEvents();
+    setShowEventModal(false);
+    toast.success("Evento adicionado! 📅");
+  };
+
   if (loading || generating) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6">
@@ -202,149 +304,334 @@ const Planner = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Planner Inteligente</h1>
-          <p className="text-muted-foreground mt-1">Organize sua semana com ajuda da IA</p>
+          <h1 className="text-3xl font-bold text-foreground">Planner de Estudos</h1>
+          <p className="text-muted-foreground mt-1">Organize sua semana e compromissos</p>
         </div>
-        
-        {profile?.is_pro ? (
-          <Button onClick={() => setShowWizard(true)} className="btn-primary group">
-            <Sparkles className="h-4 w-4 mr-2 group-hover:animate-pulse" />
-            Criar Novo Cronograma
-          </Button>
-        ) : (
-          <PremiumGuard featureName="o Planner Inteligente">
-            <Button className="btn-primary">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Criar Novo Cronograma
-            </Button>
-          </PremiumGuard>
-        )}
       </div>
 
-      {/* Progress Bar */}
-      {totalTasks > 0 && (
-        <div className="glass rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-foreground">Progresso da Semana</span>
-            <span className="text-sm text-muted-foreground">{completedTasks}/{totalTasks} tarefas</span>
-          </div>
-          <Progress value={progressPercent} className="h-3" />
-          <p className="text-right text-sm text-primary mt-1 font-medium">{progressPercent}%</p>
-        </div>
-      )}
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="glass w-full sm:w-auto grid grid-cols-2 gap-1 p-1">
+          <TabsTrigger 
+            value="cronograma" 
+            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+          >
+            <Brain className="h-4 w-4 mr-2" />
+            Cronograma IA
+          </TabsTrigger>
+          <TabsTrigger 
+            value="agenda"
+            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Agenda Manual
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Empty State */}
-      {tasks.length === 0 && (
-        <div className="glass rounded-3xl p-12 text-center">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
-            <Calendar className="h-10 w-10 text-primary" />
-          </div>
-          <h2 className="text-xl font-semibold text-foreground mb-2">Nenhum cronograma ativo</h2>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            Deixe a IA criar um plano de estudos personalizado para sua semana. 
-            Basta informar sua disponibilidade e objetivos.
-          </p>
-          {profile?.is_pro ? (
-            <Button onClick={() => setShowWizard(true)} className="btn-primary">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Criar Primeiro Cronograma
-            </Button>
-          ) : (
-            <PremiumGuard featureName="o Planner Inteligente">
-              <Button className="btn-primary">
-                <Sparkles className="h-4 w-4 mr-2" />
-                Criar Primeiro Cronograma
+        {/* Cronograma IA Tab */}
+        <TabsContent value="cronograma" className="mt-6 space-y-6">
+          {/* Action Button */}
+          <div className="flex justify-end">
+            {profile?.is_pro ? (
+              <Button onClick={() => setShowWizard(true)} className="btn-primary group">
+                <Sparkles className="h-4 w-4 mr-2 group-hover:animate-pulse" />
+                Criar Novo Cronograma
               </Button>
-            </PremiumGuard>
-          )}
-        </div>
-      )}
-
-      {/* Weekly Kanban View */}
-      {tasks.length > 0 && (
-        <div className="overflow-x-auto pb-4 -mx-4 px-4">
-          <div className="flex gap-3 min-w-max lg:min-w-0 lg:grid lg:grid-cols-7">
-            {weekDays.map((day, index) => {
-              const dayTasks = getTasksForDay(day);
-              const isToday = isSameDay(day, today);
-              
-              return (
-                <div 
-                  key={day.toISOString()} 
-                  className={`flex-shrink-0 w-[200px] lg:w-auto ${isToday ? 'lg:min-w-[180px]' : ''}`}
-                >
-                  <div className={`glass rounded-2xl p-3 h-full min-h-[300px] ${isToday ? 'ring-2 ring-primary/50' : ''}`}>
-                    {/* Day Header */}
-                    <div className={`text-center mb-3 pb-2 border-b border-white/10 ${isToday ? 'border-primary/30' : ''}`}>
-                      <p className={`text-xs uppercase tracking-wide ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {format(day, "EEE", { locale: ptBR })}
-                      </p>
-                      <p className={`text-lg font-bold ${isToday ? 'text-primary' : 'text-foreground'}`}>
-                        {format(day, "d")}
-                      </p>
-                      {isToday && (
-                        <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                          Hoje
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Tasks */}
-                    <div className="space-y-2">
-                      {dayTasks.length === 0 && (
-                        <p className="text-xs text-muted-foreground text-center py-4 opacity-50">
-                          Sem tarefas
-                        </p>
-                      )}
-                      {dayTasks.map((task) => (
-                        <button
-                          key={task.id}
-                          onClick={() => toggleTask(task.id, task.is_done)}
-                          className={`w-full text-left p-3 rounded-xl border transition-all ${
-                            task.is_done 
-                              ? 'bg-white/5 border-white/10 opacity-60' 
-                              : `${getSubjectColor(task.subject)} hover:scale-[1.02]`
-                          }`}
-                        >
-                          <div className="flex items-start gap-2">
-                            {task.is_done ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-400 flex-shrink-0 mt-0.5" />
-                            ) : (
-                              <Circle className="h-4 w-4 flex-shrink-0 mt-0.5 opacity-60" />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-xs font-semibold truncate ${task.is_done ? 'line-through' : ''}`}>
-                                {task.subject}
-                              </p>
-                              {task.topic && (
-                                <p className={`text-[10px] opacity-80 line-clamp-2 mt-0.5 ${task.is_done ? 'line-through' : ''}`}>
-                                  {task.topic}
-                                </p>
-                              )}
-                              {task.duration_minutes && (
-                                <div className="flex items-center gap-1 mt-1 opacity-60">
-                                  <Clock className="h-3 w-3" />
-                                  <span className="text-[10px]">{task.duration_minutes}min</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            ) : (
+              <PremiumGuard featureName="o Planner Inteligente">
+                <Button className="btn-primary">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Criar Novo Cronograma
+                </Button>
+              </PremiumGuard>
+            )}
           </div>
-        </div>
-      )}
+
+          {/* Progress Bar */}
+          {totalTasks > 0 && (
+            <div className="glass rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-foreground">Progresso da Semana</span>
+                <span className="text-sm text-muted-foreground">{completedTasks}/{totalTasks} tarefas</span>
+              </div>
+              <Progress value={progressPercent} className="h-3" />
+              <p className="text-right text-sm text-primary mt-1 font-medium">{progressPercent}%</p>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {tasks.length === 0 && (
+            <div className="glass rounded-3xl p-12 text-center">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+                <Brain className="h-10 w-10 text-primary" />
+              </div>
+              <h2 className="text-xl font-semibold text-foreground mb-2">Nenhum cronograma ativo</h2>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Deixe a IA criar um plano de estudos personalizado para sua semana. 
+                Basta informar sua disponibilidade e objetivos.
+              </p>
+              {profile?.is_pro ? (
+                <Button onClick={() => setShowWizard(true)} className="btn-primary">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Criar Primeiro Cronograma
+                </Button>
+              ) : (
+                <PremiumGuard featureName="o Planner Inteligente">
+                  <Button className="btn-primary">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Criar Primeiro Cronograma
+                  </Button>
+                </PremiumGuard>
+              )}
+            </div>
+          )}
+
+          {/* Weekly Kanban View */}
+          {tasks.length > 0 && (
+            <div className="overflow-x-auto pb-4 -mx-4 px-4">
+              <div className="flex gap-3 min-w-max lg:min-w-0 lg:grid lg:grid-cols-7">
+                {weekDays.map((day) => {
+                  const dayTasks = getTasksForDay(day);
+                  const isToday = isSameDay(day, today);
+                  
+                  return (
+                    <div 
+                      key={day.toISOString()} 
+                      className={`flex-shrink-0 w-[200px] lg:w-auto ${isToday ? 'lg:min-w-[180px]' : ''}`}
+                    >
+                      <div className={`glass rounded-2xl p-3 h-full min-h-[300px] ${isToday ? 'ring-2 ring-primary/50' : ''}`}>
+                        <div className={`text-center mb-3 pb-2 border-b border-white/10 ${isToday ? 'border-primary/30' : ''}`}>
+                          <p className={`text-xs uppercase tracking-wide ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
+                            {format(day, "EEE", { locale: ptBR })}
+                          </p>
+                          <p className={`text-lg font-bold ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                            {format(day, "d")}
+                          </p>
+                          {isToday && (
+                            <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                              Hoje
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          {dayTasks.length === 0 && (
+                            <p className="text-xs text-muted-foreground text-center py-4 opacity-50">
+                              Sem tarefas
+                            </p>
+                          )}
+                          {dayTasks.map((task) => (
+                            <button
+                              key={task.id}
+                              onClick={() => toggleTask(task.id, task.is_done)}
+                              className={`w-full text-left p-3 rounded-xl border transition-all ${
+                                task.is_done 
+                                  ? 'bg-white/5 border-white/10 opacity-60' 
+                                  : `${getSubjectColor(task.subject)} hover:scale-[1.02]`
+                              }`}
+                            >
+                              <div className="flex items-start gap-2">
+                                {task.is_done ? (
+                                  <CheckCircle2 className="h-4 w-4 text-green-400 flex-shrink-0 mt-0.5" />
+                                ) : (
+                                  <Circle className="h-4 w-4 flex-shrink-0 mt-0.5 opacity-60" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-xs font-semibold truncate ${task.is_done ? 'line-through' : ''}`}>
+                                    {task.subject}
+                                  </p>
+                                  {task.topic && (
+                                    <p className={`text-[10px] opacity-80 line-clamp-2 mt-0.5 ${task.is_done ? 'line-through' : ''}`}>
+                                      {task.topic}
+                                    </p>
+                                  )}
+                                  {task.duration_minutes && (
+                                    <div className="flex items-center gap-1 mt-1 opacity-60">
+                                      <Clock className="h-3 w-3" />
+                                      <span className="text-[10px]">{task.duration_minutes}min</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Agenda Manual Tab */}
+        <TabsContent value="agenda" className="mt-6 space-y-6">
+          {/* Action Button */}
+          <div className="flex justify-end">
+            <Button onClick={() => setShowEventModal(true)} className="btn-primary">
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar Evento
+            </Button>
+          </div>
+
+          {/* Empty State */}
+          {events.length === 0 && (
+            <div className="glass rounded-3xl p-12 text-center">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+                <Calendar className="h-10 w-10 text-primary" />
+              </div>
+              <h2 className="text-xl font-semibold text-foreground mb-2">Nenhum evento cadastrado</h2>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Adicione suas provas, simulados e outros compromissos da escola ou cursinho.
+              </p>
+              <Button onClick={() => setShowEventModal(true)} className="btn-primary">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Primeiro Evento
+              </Button>
+            </div>
+          )}
+
+          {/* Events Weekly View */}
+          {events.length > 0 && (
+            <div className="overflow-x-auto pb-4 -mx-4 px-4">
+              <div className="flex gap-3 min-w-max lg:min-w-0 lg:grid lg:grid-cols-7">
+                {weekDays.map((day) => {
+                  const dayEvents = getEventsForDay(day);
+                  const isToday = isSameDay(day, today);
+                  
+                  return (
+                    <div 
+                      key={day.toISOString()} 
+                      className={`flex-shrink-0 w-[200px] lg:w-auto ${isToday ? 'lg:min-w-[180px]' : ''}`}
+                    >
+                      <div className={`glass rounded-2xl p-3 h-full min-h-[300px] ${isToday ? 'ring-2 ring-primary/50' : ''}`}>
+                        <div className={`text-center mb-3 pb-2 border-b border-white/10 ${isToday ? 'border-primary/30' : ''}`}>
+                          <p className={`text-xs uppercase tracking-wide ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
+                            {format(day, "EEE", { locale: ptBR })}
+                          </p>
+                          <p className={`text-lg font-bold ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                            {format(day, "d")}
+                          </p>
+                          {isToday && (
+                            <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                              Hoje
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          {dayEvents.length === 0 && (
+                            <p className="text-xs text-muted-foreground text-center py-4 opacity-50">
+                              Sem eventos
+                            </p>
+                          )}
+                          {dayEvents.map((event) => (
+                            <div
+                              key={event.id}
+                              className={`w-full text-left p-3 rounded-xl border transition-all ${getEventColor(event.type)} hover:scale-[1.02] group relative`}
+                            >
+                              <button
+                                onClick={() => deleteEvent(event.id)}
+                                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                              <div className="flex items-start gap-2">
+                                {event.type === "prova" ? (
+                                  <BookOpen className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                                ) : event.type === "simulado" ? (
+                                  <GraduationCap className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                                ) : (
+                                  <Calendar className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-semibold truncate">
+                                    {event.title}
+                                  </p>
+                                  <p className="text-[10px] opacity-80 mt-0.5">
+                                    {eventTypeLabels[event.type || "outro"]}
+                                  </p>
+                                  <div className="flex items-center gap-1 mt-1 opacity-60">
+                                    <Clock className="h-3 w-3" />
+                                    <span className="text-[10px]">
+                                      {format(parseISO(event.start_time), "HH:mm")}
+                                    </span>
+                                  </div>
+                                  {event.location && (
+                                    <div className="flex items-center gap-1 mt-0.5 opacity-60">
+                                      <MapPin className="h-3 w-3" />
+                                      <span className="text-[10px] truncate">{event.location}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Upcoming Events List */}
+          {events.length > 0 && (
+            <div className="glass rounded-2xl p-4">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                Próximos Eventos
+              </h3>
+              <div className="space-y-3">
+                {events.slice(0, 5).map((event) => (
+                  <div 
+                    key={event.id}
+                    className={`flex items-center gap-4 p-3 rounded-xl border ${getEventColor(event.type)}`}
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-white/10 flex flex-col items-center justify-center">
+                      <span className="text-lg font-bold">{format(parseISO(event.start_time), "d")}</span>
+                      <span className="text-[10px] uppercase">{format(parseISO(event.start_time), "MMM", { locale: ptBR })}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">{event.title}</p>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {format(parseISO(event.start_time), "HH:mm")}
+                        </span>
+                        {event.location && (
+                          <span className="flex items-center gap-1 truncate">
+                            <MapPin className="h-3 w-3" />
+                            {event.location}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-xs px-2 py-1 rounded-full bg-white/10">
+                      {eventTypeLabels[event.type || "outro"]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Wizard Modal */}
       <WizardModal 
         open={showWizard} 
         onOpenChange={setShowWizard} 
         onGenerate={handleGeneratePlan} 
+      />
+
+      {/* Add Event Modal */}
+      <AddEventModal
+        open={showEventModal}
+        onOpenChange={setShowEventModal}
+        onAdd={handleAddEvent}
       />
     </div>
   );
@@ -376,7 +663,6 @@ const WizardModal = ({ open, onOpenChange, onGenerate }: WizardModalProps) => {
       return;
     }
     onGenerate(hours, focus, weakness);
-    // Reset
     setStep(1);
     setHours(4);
     setFocus("");
@@ -402,7 +688,6 @@ const WizardModal = ({ open, onOpenChange, onGenerate }: WizardModalProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        {/* Progress Dots */}
         <div className="flex justify-center gap-2 py-2">
           {[1, 2, 3].map((s) => (
             <div 
@@ -415,7 +700,6 @@ const WizardModal = ({ open, onOpenChange, onGenerate }: WizardModalProps) => {
         </div>
 
         <div className="py-4 min-h-[200px]">
-          {/* Step 1: Hours */}
           {step === 1 && (
             <div className="space-y-6 animate-fade-in">
               <div className="text-center">
@@ -449,7 +733,6 @@ const WizardModal = ({ open, onOpenChange, onGenerate }: WizardModalProps) => {
             </div>
           )}
 
-          {/* Step 2: Focus */}
           {step === 2 && (
             <div className="space-y-6 animate-fade-in">
               <div className="text-center">
@@ -473,7 +756,6 @@ const WizardModal = ({ open, onOpenChange, onGenerate }: WizardModalProps) => {
             </div>
           )}
 
-          {/* Step 3: Weakness */}
           {step === 3 && (
             <div className="space-y-6 animate-fade-in">
               <div className="text-center">
@@ -482,7 +764,7 @@ const WizardModal = ({ open, onOpenChange, onGenerate }: WizardModalProps) => {
                 </div>
                 <h3 className="text-lg font-semibold text-foreground">Pontos Fracos</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Quais matérias você tem mais dificuldade? (Opcional)
+                  Quais matérias você tem mais dificuldade?
                 </p>
               </div>
               
@@ -493,19 +775,17 @@ const WizardModal = ({ open, onOpenChange, onGenerate }: WizardModalProps) => {
                   placeholder="Ex: Física, Matemática, Redação..."
                   className="input-glass text-center"
                 />
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  (Opcional) A IA focará mais nestas áreas
+                </p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Navigation */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-4">
           {step > 1 && (
-            <Button 
-              variant="outline" 
-              onClick={handleBack}
-              className="flex-1 border-white/20 hover:bg-white/10"
-            >
+            <Button variant="outline" onClick={handleBack} className="flex-1">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>
@@ -513,7 +793,7 @@ const WizardModal = ({ open, onOpenChange, onGenerate }: WizardModalProps) => {
           
           {step < 3 ? (
             <Button 
-              onClick={handleNext}
+              onClick={handleNext} 
               disabled={!canProceed()}
               className="flex-1 btn-primary"
             >
@@ -523,12 +803,128 @@ const WizardModal = ({ open, onOpenChange, onGenerate }: WizardModalProps) => {
           ) : (
             <Button 
               onClick={handleSubmit}
-              className="flex-1 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 text-white"
+              className="flex-1 btn-primary"
             >
               <Sparkles className="h-4 w-4 mr-2" />
               Gerar Cronograma
             </Button>
           )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+interface AddEventModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAdd: (data: { title: string; date: string; time: string; type: string; location: string }) => void;
+}
+
+const AddEventModal = ({ open, onOpenChange, onAdd }: AddEventModalProps) => {
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("08:00");
+  const [type, setType] = useState("prova");
+  const [location, setLocation] = useState("");
+
+  const handleSubmit = () => {
+    if (!title.trim() || !date) {
+      toast.error("Preencha o título e a data");
+      return;
+    }
+    onAdd({ title, date, time, type, location });
+    setTitle("");
+    setDate("");
+    setTime("08:00");
+    setType("prova");
+    setLocation("");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="glass-strong border-white/20 sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            Adicionar Evento
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Cadastre provas, simulados ou outros compromissos
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="event-title">Título do Evento</Label>
+            <Input
+              id="event-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Ex: Prova de Matemática, Simulado ENEM..."
+              className="input-glass"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="event-type">Tipo de Evento</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger className="input-glass">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="glass-strong border-white/20">
+                <SelectItem value="prova">📝 Prova</SelectItem>
+                <SelectItem value="simulado">🎯 Simulado</SelectItem>
+                <SelectItem value="trabalho">📚 Trabalho</SelectItem>
+                <SelectItem value="aula">👨‍🏫 Aula Extra</SelectItem>
+                <SelectItem value="outro">📌 Outro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="event-date">Data</Label>
+              <Input
+                id="event-date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="input-glass"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="event-time">Horário</Label>
+              <Input
+                id="event-time"
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="input-glass"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="event-location">Local (opcional)</Label>
+            <Input
+              id="event-location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Ex: Sala 201, Cursinho, Escola..."
+              className="input-glass"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 pt-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+            Cancelar
+          </Button>
+          <Button onClick={handleSubmit} className="flex-1 btn-primary">
+            <Plus className="h-4 w-4 mr-2" />
+            Adicionar
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
