@@ -2,8 +2,13 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_API_KEY || "");
 
-console.log("Inicializando Gemini 1.5 Flash...");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+console.log("Inicializando Gemma 3 4b IT...");
+const model = genAI.getGenerativeModel({
+  model: "gemma-3-4b-it",
+  systemInstruction: "Você é um especialista em vestibular de Medicina (UERN/ENEM)."
+}, {
+  apiVersion: "v1beta"
+});
 
 // --- Types ---
 
@@ -76,6 +81,7 @@ export const generateFlashcards = async (topic: string, count: number = 5): Prom
     const prompt = `
       Crie ${count} flashcards sobre "${topic}".
       Responda APENAS um JSON Array válido: [{"front": "Pergunta", "back": "Resposta"}]
+      Responda estritamente em JSON válido.
     `;
     const result = await model.generateContent(prompt);
     const data = parseJSON(result.response.text());
@@ -149,6 +155,7 @@ export const correctEssay = async (text: string, theme: string = "Tema Livre"): 
         "feedback": "Texto corrido, em tom educacional e encorajador, explicando os erros e acertos.",
         "melhorias": ["Sugestão prática 1", "Sugestão prática 2 (ex: usar mais conectivos)", "Sugestão 3 (ex: citar um autor)"]
       }
+      Responda estritamente em JSON válido.
     `;
 
     // Uso do modelo global padronizado (gemini-1.5-flash)
@@ -217,6 +224,7 @@ export const createStudyPlan = async (
         }
       ]
       *Nota: No campo 'topic', coloque a Área entre colchetes no início, ex: [Humanas], [Natureza], [Linguagens], [Matemática], [Redação].
+      Responda estritamente em JSON válido.
     `;
 
     const result = await model.generateContent(prompt);
