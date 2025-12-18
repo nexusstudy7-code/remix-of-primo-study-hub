@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { updateStreak } from "@/services/streakService";
-import { Brain, ChevronRight, CheckCircle2, XCircle, AlertCircle, Loader2, Search, Sparkles, Flame, BookmarkPlus } from "lucide-react";
+import { Brain, ChevronRight, CheckCircle2, CheckCircle, XCircle, AlertCircle, Loader2, Search, Sparkles, Flame, BookmarkPlus } from "lucide-react";
 import Watermark from "@/components/Watermark";
 import { generateAndCacheQuestions } from "@/services/questionService";
 
@@ -99,6 +99,13 @@ const QuestionLab = () => {
     });
   };
 
+  const handleGenerateNext = () => {
+    setQuestion(null);
+    setSelectedAnswer(null);
+    setShowResult(false);
+    generateWithAI(false); // Default to 'medium' for speed/stability
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6 slide-up">
       <div className="text-center mb-8">
@@ -167,9 +174,14 @@ const QuestionLab = () => {
                   <p className="text-sm text-muted-foreground mb-1">Explicação:</p>
                   <p className="text-foreground">{question.explanation}</p>
                 </div>
-                <Button onClick={handleSave} className="btn-glass">
-                  <BookmarkPlus className="h-4 w-4 mr-2" />Salvar no Meu Caderno
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={handleSave} className="btn-glass flex-1">
+                    <BookmarkPlus className="h-4 w-4 mr-2" />Salvar
+                  </Button>
+                  <Button onClick={handleGenerateNext} className="btn-primary flex-1">
+                    <ChevronRight className="h-4 w-4 mr-2" />Próxima Questão
+                  </Button>
+                </div>
               </div>
             )}
           </div>
