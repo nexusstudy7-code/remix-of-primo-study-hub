@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  Sparkles, 
-  Brain, 
-  Calendar, 
-  FileText, 
+import {
+  Sparkles,
+  Brain,
+  Calendar,
+  FileText,
   Zap,
   CheckCircle,
   ArrowRight,
@@ -83,7 +83,7 @@ const Landing = () => {
             </div>
 
             {/* Mobile Menu Button */}
-            <button 
+            <button
               className="md:hidden text-foreground"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
@@ -94,7 +94,7 @@ const Landing = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="md:hidden glass border-t border-white/10"
@@ -125,7 +125,7 @@ const Landing = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <motion.div 
+          <motion.div
             initial="hidden"
             animate="visible"
             variants={stagger}
@@ -136,7 +136,7 @@ const Landing = () => {
               <span className="text-sm text-primary font-medium">Potencializado por IA</span>
             </motion.div>
 
-            <motion.h1 
+            <motion.h1
               variants={fadeUp}
               className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6"
             >
@@ -148,11 +148,11 @@ const Landing = () => {
               {" "}🚀
             </motion.h1>
 
-            <motion.p 
+            <motion.p
               variants={fadeUp}
               className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
             >
-              Tenha um tutor pessoal 24h. Correção de redação instantânea, 
+              Tenha um tutor pessoal 24h. Correção de redação instantânea,
               cronogramas adaptativos e flashcards infinitos.
             </motion.p>
 
@@ -166,7 +166,7 @@ const Landing = () => {
                   <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 </Button>
               </Link>
-              <button 
+              <button
                 onClick={() => scrollToSection("features")}
                 className="text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors"
               >
@@ -177,7 +177,7 @@ const Landing = () => {
           </motion.div>
 
           {/* Hero Visual - Dashboard Mockup */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 50, rotateX: 10 }}
             animate={{ opacity: 1, y: 0, rotateX: 0 }}
             transition={{ delay: 0.3, duration: 0.8 }}
@@ -225,7 +225,7 @@ const Landing = () => {
       {/* Features Bento Grid */}
       <section id="features" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <motion.div 
+          <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
@@ -241,7 +241,7 @@ const Landing = () => {
             </motion.p>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
@@ -249,7 +249,7 @@ const Landing = () => {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           >
             {/* Large Card - Essay */}
-            <motion.div 
+            <motion.div
               variants={fadeUp}
               className="lg:col-span-2 glass rounded-3xl p-8 hover:bg-white/[0.12] transition-all group"
             >
@@ -262,7 +262,7 @@ const Landing = () => {
                     Correção de Redação com IA
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    Correção nível ENEM em 3 segundos. Feedback detalhado nas 5 competências. 
+                    Correção nível ENEM em 3 segundos. Feedback detalhado nas 5 competências.
                     Esqueça os cursinhos caros.
                   </p>
                   <div className="flex items-center gap-2 text-sm text-primary">
@@ -274,7 +274,7 @@ const Landing = () => {
             </motion.div>
 
             {/* Medium Card - Planner */}
-            <motion.div 
+            <motion.div
               variants={fadeUp}
               className="glass rounded-3xl p-8 hover:bg-white/[0.12] transition-all group"
             >
@@ -290,7 +290,7 @@ const Landing = () => {
             </motion.div>
 
             {/* Small Card - Flashcards */}
-            <motion.div 
+            <motion.div
               variants={fadeUp}
               className="glass rounded-3xl p-6 hover:bg-white/[0.12] transition-all group"
             >
@@ -308,7 +308,7 @@ const Landing = () => {
             </motion.div>
 
             {/* Small Card - Questions */}
-            <motion.div 
+            <motion.div
               variants={fadeUp}
               className="glass rounded-3xl p-6 hover:bg-white/[0.12] transition-all group"
             >
@@ -326,7 +326,7 @@ const Landing = () => {
             </motion.div>
 
             {/* Small Card - Chat */}
-            <motion.div 
+            <motion.div
               variants={fadeUp}
               className="glass rounded-3xl p-6 hover:bg-white/[0.12] transition-all group"
             >
@@ -354,9 +354,9 @@ const Landing = () => {
             {/* Background Decor */}
             <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-primary/20 rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-secondary/20 rounded-full blur-3xl" />
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-              <motion.div 
+              <motion.div
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
@@ -366,7 +366,7 @@ const Landing = () => {
                   <Heart className="h-4 w-4 text-pink-500" />
                   <span className="text-sm text-pink-500 font-medium">Cuidado Real</span>
                 </motion.div>
-                
+
                 <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-foreground mb-6">
                   Suporte Humanizado
                   <span className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">
@@ -375,8 +375,8 @@ const Landing = () => {
                 </motion.h2>
 
                 <motion.p variants={fadeUp} className="text-lg text-muted-foreground mb-8">
-                  Sabemos que a IA é incrível, mas às vezes você precisa de um toque humano. 
-                  Nossa equipe de monitores especialistas está pronta para te acolher e tirar 
+                  Sabemos que a IA é incrível, mas às vezes você precisa de um toque humano.
+                  Nossa equipe de monitores especialistas está pronta para te acolher e tirar
                   suas dúvidas a qualquer hora do dia ou da noite.
                 </motion.p>
 
@@ -404,56 +404,56 @@ const Landing = () => {
                 </motion.div>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
                 className="relative"
               >
-                 {/* Decorative elements representing connection */}
-                 <div className="relative z-10 grid grid-cols-2 gap-4">
-                    <div className="space-y-4 mt-8">
-                      <div className="glass p-4 rounded-2xl animate-float">
-                        <div className="flex items-center gap-3 mb-2">
-                           <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                             <Users className="h-4 w-4 text-green-500" />
-                           </div>
-                           <span className="text-xs font-semibold">Monitor João</span>
+                {/* Decorative elements representing connection */}
+                <div className="relative z-10 grid grid-cols-2 gap-4">
+                  <div className="space-y-4 mt-8">
+                    <div className="glass p-4 rounded-2xl animate-float">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                          <Users className="h-4 w-4 text-green-500" />
                         </div>
-                        <p className="text-xs text-muted-foreground">"Claro! Vamos resolver essa questão de Logaritmo juntos."</p>
+                        <span className="text-xs font-semibold">Monitor João</span>
                       </div>
-                      <div className="glass p-4 rounded-2xl animate-float" style={{ animationDelay: "1.5s" }}>
-                         <div className="flex items-center gap-3 mb-2">
-                           <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                             <Users className="h-4 w-4 text-blue-500" />
-                           </div>
-                           <span className="text-xs font-semibold">Monitora Ana</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">"Não desanima! Faltam só 2 semanas."</p>
-                      </div>
+                      <p className="text-xs text-muted-foreground">"Claro! Vamos resolver essa questão de Logaritmo juntos."</p>
                     </div>
-                    <div className="space-y-4">
-                       <div className="glass p-4 rounded-2xl animate-float" style={{ animationDelay: "0.5s" }}>
-                         <div className="flex items-center gap-3 mb-2">
-                           <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                             <Users className="h-4 w-4 text-purple-500" />
-                           </div>
-                           <span className="text-xs font-semibold">Monitor Pedro</span>
+                    <div className="glass p-4 rounded-2xl animate-float" style={{ animationDelay: "1.5s" }}>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                          <Users className="h-4 w-4 text-blue-500" />
                         </div>
-                        <p className="text-xs text-muted-foreground">"Sua redação evoluiu muito! Parabéns!"</p>
+                        <span className="text-xs font-semibold">Monitora Ana</span>
                       </div>
-                       <div className="glass p-4 rounded-2xl animate-float" style={{ animationDelay: "2s" }}>
-                         <div className="flex items-center gap-3 mb-2">
-                           <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
-                             <Users className="h-4 w-4 text-orange-500" />
-                           </div>
-                           <span className="text-xs font-semibold">Suporte Téc.</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">"Resolvido! Pode acessar normalmente."</p>
-                      </div>
+                      <p className="text-xs text-muted-foreground">"Não desanima! Faltam só 2 semanas."</p>
                     </div>
-                 </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="glass p-4 rounded-2xl animate-float" style={{ animationDelay: "0.5s" }}>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                          <Users className="h-4 w-4 text-purple-500" />
+                        </div>
+                        <span className="text-xs font-semibold">Monitor Pedro</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">"Sua redação evoluiu muito! Parabéns!"</p>
+                    </div>
+                    <div className="glass p-4 rounded-2xl animate-float" style={{ animationDelay: "2s" }}>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+                          <Users className="h-4 w-4 text-orange-500" />
+                        </div>
+                        <span className="text-xs font-semibold">Suporte Téc.</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">"Resolvido! Pode acessar normalmente."</p>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             </div>
           </div>
@@ -463,7 +463,7 @@ const Landing = () => {
       {/* Testimonials */}
       <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-white/[0.02]">
         <div className="max-w-7xl mx-auto">
-          <motion.div 
+          <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
@@ -475,7 +475,7 @@ const Landing = () => {
             </motion.h2>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
@@ -497,9 +497,19 @@ const Landing = () => {
                 name: "Ana Beatriz",
                 course: "Aprovada em Engenharia - ITA",
                 quote: "Os flashcards com repetição espaçada foram essenciais para memorizar fórmulas."
+              },
+              {
+                name: "Lucas Pereira",
+                course: "Aprovado em Ciência da Computação - UFMG",
+                quote: "A interface é incrível e a correção de redação me mostrou exatamente onde eu estava errando na competência 3."
+              },
+              {
+                name: "Fernanda Lima",
+                course: "Aprovada em Psicologia - UFRJ",
+                quote: "Os planos de estudo se adaptaram perfeitamente à minha rotina corrida de trabalho e cursinho."
               }
             ].map((testimonial, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
                 variants={fadeUp}
                 className="glass rounded-3xl p-6 hover:bg-white/[0.12] transition-all"
@@ -523,7 +533,7 @@ const Landing = () => {
       {/* Pricing */}
       <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <motion.div 
+          <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
@@ -537,7 +547,7 @@ const Landing = () => {
             </motion.h2>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -597,7 +607,7 @@ const Landing = () => {
 
       {/* Final CTA */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

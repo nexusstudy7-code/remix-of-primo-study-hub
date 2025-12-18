@@ -5,6 +5,16 @@ const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_API_KEY || "");
 console.log("Inicializando Gemini 1.5 Flash...");
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
+const parseJSON = (text: string) => {
+  try {
+    return JSON.parse(text.replace(/```json|```/g, "").trim());
+  } catch (e) {
+    console.error("Failed to parse JSON:", e);
+    return null;
+  }
+};
+
+
 // --- Types ---
 
 export interface AIResponse<T> {
