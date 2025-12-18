@@ -162,7 +162,7 @@ export const correctEssay = async (text: string, theme: string = "Tema Livre"): 
     console.error("Erro na chamada AI:", e);
     console.error("Erro detalhado:", e.message);
     if (e.message?.includes("404")) {
-      console.error("ERRO 404: Verifique se o modelo 'gemini-1.5-flash-002' está disponível para sua API Key.");
+      console.error("ERRO 404: Verifique se o modelo 'gemini-1.5-flash' está disponível para sua API Key.");
     }
     return { data: null, error: e.message };
   }
@@ -228,7 +228,7 @@ export const createStudyPlan = async (
     console.error("Erro na chamada AI (Plan):", e);
     console.error("Erro detalhado:", e.message);
     if (e.message?.includes("404")) {
-      console.error("ERRO 404: Verifique se o modelo 'gemini-1.5-flash-002' está disponível para sua API Key.");
+      console.error("ERRO 404: Verifique se o modelo 'gemini-1.5-flash' está disponível para sua API Key.");
     }
     return { data: null, error: e.message };
   }
