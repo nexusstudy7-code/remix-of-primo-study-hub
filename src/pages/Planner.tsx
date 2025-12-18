@@ -266,8 +266,8 @@ const Planner = () => {
       }
 
       if (result.data) {
-        // Safe access with fallback
-        const tasksToSave = result.data.tasks || [];
+        // result.data is now directly an array of StudyTask
+        const tasksToSave = result.data;
 
         if (!Array.isArray(tasksToSave) || tasksToSave.length === 0) {
           toast.error("A IA não gerou tarefas válidas. Tente novamente.");
@@ -300,19 +300,7 @@ const Planner = () => {
         await fetchTasks();
         await fetchEvents();
 
-        // Show Strategy Summary!
-        toast.success("Estratégia SISU Gerada! 🚀");
-        if (result.data.summary) {
-          toast(result.data.summary, {
-            duration: 8000,
-            icon: '🧠',
-            style: {
-              background: '#1e1e2e',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.1)'
-            }
-          });
-        }
+        toast.success("Cronograma gerado com sucesso! 🚀");
       }
     } catch (error) {
       console.error("Error generating plan:", error);
