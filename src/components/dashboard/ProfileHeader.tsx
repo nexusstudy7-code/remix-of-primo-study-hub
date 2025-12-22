@@ -40,6 +40,19 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
         {/* Stats: Streak & XP */}
         <div className="flex items-center gap-4">
 
+          {/* Level Display */}
+          <div className="glass-strong rounded-2xl p-6 text-center min-w-[140px]">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <div className="w-10 h-10 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center">
+                <span className="text-xs font-bold text-secondary">Lvl</span>
+              </div>
+            </div>
+            <p className="text-4xl font-bold text-foreground">
+              {profile?.level || 1}
+            </p>
+            <p className="text-sm text-muted-foreground">Nível Atual</p>
+          </div>
+
           {/* XP Display */}
           <div className="glass-strong rounded-2xl p-6 text-center min-w-[140px]">
             <div className="flex items-center justify-center gap-2 mb-1">
@@ -48,7 +61,7 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
               </div>
             </div>
             <p className="text-4xl font-bold text-foreground">
-              {profile?.xp_points || 0}
+              {profile?.xp || 0}
             </p>
             <p className="text-sm text-muted-foreground">XP Total</p>
           </div>

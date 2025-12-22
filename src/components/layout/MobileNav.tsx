@@ -1,13 +1,14 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Beaker, 
-  CalendarDays, 
-  FileText, 
-  Brain, 
-  MessageSquare, 
+import {
+  LayoutDashboard,
+  Beaker,
+  CalendarDays,
+  FileText,
+  Brain,
+  MessageSquare,
   Timer,
-  Menu
+  Menu,
+  Trophy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -27,6 +28,8 @@ const allNavItems = [
   { to: "/dashboard/flashcards", icon: Brain, label: "Flashcards", premium: true },
   { to: "/dashboard/chat", icon: MessageSquare, label: "Chat IA" },
   { to: "/dashboard/planner", icon: CalendarDays, label: "Agenda" },
+  { to: "/dashboard/planner", icon: CalendarDays, label: "Agenda" },
+  { to: "/dashboard/ranking", icon: Trophy, label: "Ranking" },
   { to: "/dashboard/focus", icon: Timer, label: "Focus Room" },
 ];
 
@@ -39,18 +42,18 @@ const MobileNav = () => {
     <div className="lg:hidden fixed bottom-4 left-4 right-4 z-50">
       <nav className="glass rounded-2xl p-2 flex justify-around items-center">
         {mainNavItems.map((item) => {
-          const isActive = item.end 
-            ? location.pathname === item.to 
+          const isActive = item.end
+            ? location.pathname === item.to
             : location.pathname.startsWith(item.to);
-          
+
           return (
             <NavLink
               key={item.to}
               to={item.to}
               className={cn(
                 "flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-300",
-                isActive 
-                  ? "bg-primary/20 text-primary" 
+                isActive
+                  ? "bg-primary/20 text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -59,7 +62,7 @@ const MobileNav = () => {
             </NavLink>
           );
         })}
-        
+
         {/* More menu */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
@@ -71,10 +74,10 @@ const MobileNav = () => {
           <SheetContent side="bottom" className="glass-strong border-white/20 rounded-t-3xl">
             <nav className="grid grid-cols-3 gap-3 pt-4">
               {allNavItems.map((item) => {
-                const isActive = item.end 
-                  ? location.pathname === item.to 
+                const isActive = item.end
+                  ? location.pathname === item.to
                   : location.pathname.startsWith(item.to);
-                
+
                 return (
                   <NavLink
                     key={item.to}
@@ -82,8 +85,8 @@ const MobileNav = () => {
                     onClick={() => setOpen(false)}
                     className={cn(
                       "flex flex-col items-center gap-2 p-4 rounded-2xl transition-all",
-                      isActive 
-                        ? "bg-primary/20 text-primary border border-primary/30" 
+                      isActive
+                        ? "bg-primary/20 text-primary border border-primary/30"
                         : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground"
                     )}
                   >

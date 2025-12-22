@@ -13,6 +13,10 @@ export interface Profile {
   avatar_url: string | null;
   is_pro: boolean | null;
   xp_points: number | null;
+  xp: number | null;
+  level: number | null;
+  email?: string | null;
+  username?: string | null;
 }
 
 export function useProfile() {
@@ -35,7 +39,7 @@ export function useProfile() {
         .maybeSingle();
 
       if (error) throw error;
-      setProfile(data);
+      setProfile(data as unknown as Profile);
     } catch (error) {
       console.error("Error fetching profile:", error);
     } finally {
@@ -65,9 +69,22 @@ export function useProfile() {
   };
 
   const addXP = async (amount: number) => {
-    if (!user || !profile) return;
-    const newXP = (profile.xp_points || 0) + amount;
-    await updateProfile({ xp_points: newXP });
+    if (!user) return;
+
+    console.log("Tentando adicionar XP:", amount);
+    // @ts-ignore
+    const { data, error } = await supabase.rpc('increment_xp', { amount });
+
+    if (error) {
+      console.error("Erro no Supabase RPC:", error);
+      return null;
+    } else {
+      console.log("XP atualizado com sucesso!", data);
+    }
+
+    // Refresh profile to update UI
+    fetchProfile();
+    return true;
   };
 
   useEffect(() => {

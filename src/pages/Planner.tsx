@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
@@ -40,6 +40,7 @@ interface StudyTask {
   subject: string;
   topic: string | null;
   date: string | null;
+  due_date?: string | null;  // Added for compatibility with database column
   is_done: boolean | null;
   duration_minutes: number | null;
 }
@@ -97,7 +98,7 @@ const getEventColor = (type: string | null) => {
 
 const Planner = () => {
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile, addXP } = useProfile();
   const [tasks, setTasks] = useState<StudyTask[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,6 +111,7 @@ const Planner = () => {
   const [selectedDayTasks, setSelectedDayTasks] = useState<StudyTask[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeDay, setActiveDay] = useState<Date | null>(null);
+  const isGeneratingRef = useRef(false);
 
   const today = startOfDay(new Date());
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(today, i));
@@ -123,19 +125,24 @@ const Planner = () => {
   }, [user]);
 
   const fetchTasks = async () => {
+    // Se acabamos de gerar tarefas, ignoramos este fetch para não apagar a tela
+    if (isGeneratingRef.current) {
+      console.log("🚫 Fetch bloqueado para preservar Tasks da IA");
+      return;
+    }
     // Widen range to handle timezone edge cases
     const startDate = format(addDays(today, -1), "yyyy-MM-dd");
     const endDate = format(addDays(today, 8), "yyyy-MM-dd");
 
-    console.log(`Fetching tasks from ${startDate} to ${endDate}...`);
+    console.log(`Buscando tarefas entre ${startDate} e ${endDate} na coluna due_date`);
 
     const { data, error } = await supabase
       .from("study_tasks")
       .select("*")
       .eq("user_id", user?.id)
-      .gte("date", startDate)
-      .lte("date", endDate)
-      .order("date", { ascending: true });
+      .gte("due_date", startDate)
+      .lte("due_date", endDate)
+      .order("due_date", { ascending: true });
 
     if (error) {
       console.error("Error fetching tasks:", error);
@@ -167,28 +174,56 @@ const Planner = () => {
   };
 
   const toggleTask = async (taskId: string, currentState: boolean | null) => {
-    const newState = !currentState;
+    console.log("1. Tentando alternar tarefa:", taskId, "Status atual:", currentState);
 
-    const { error } = await supabase
-      .from("study_tasks")
-      .update({ is_done: newState })
-      .eq("id", taskId);
-
-    if (error) {
-      toast.error("Erro ao atualizar tarefa");
+    if (!taskId) {
+      console.error("ERRO: ID da tarefa indefinido!");
+      toast.error("Erro: Tarefa sem ID.");
+      return;
+    }
+    // Evita erro se for task temporária
+    if (taskId.toString().startsWith("temp-")) {
+      console.warn("Tentando alterar task temporária. Salvamento pendente.");
       return;
     }
 
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, is_done: newState } : t));
+    // 1. Otimistic Update (Muda a cor na tela imediatamente)
+    const newStatus = !currentState;
+    setTasks(prev => prev.map(t =>
+      t.id === taskId ? { ...t, is_done: newStatus } : t
+    ));
+    setSelectedDayTasks(prev => prev.map(t =>
+      t.id === taskId ? { ...t, is_done: newStatus } : t
+    ));
 
-    if (newState) {
-      confetti({
-        particleCount: 50,
-        spread: 60,
-        origin: { y: 0.7 },
-        colors: ['#6366f1', '#8b5cf6', '#a855f7']
-      });
-      toast.success("+10 XP! Tarefa concluída! 🎉");
+    // 2. Envia para o Supabase (Verifique se a coluna é 'is_done')
+    const { error } = await supabase
+      .from('study_tasks')
+      .update({ is_done: newStatus })
+      .eq('id', taskId);
+
+    if (error) {
+      console.error("3. Erro no Supabase:", error);
+      toast.error("Erro ao salvar no banco.");
+      // Reverte a mudança local se der erro
+      setTasks(prev => prev.map(t =>
+        t.id === taskId ? { ...t, is_done: currentState } : t
+      ));
+      setSelectedDayTasks(prev => prev.map(t =>
+        t.id === taskId ? { ...t, is_done: currentState } : t
+      ));
+    } else {
+      console.log("3. Sucesso ao atualizar no banco!");
+      if (newStatus) {
+        addXP(10);
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.7 },
+          colors: ['#6366f1', '#8b5cf6', '#a855f7']
+        });
+        toast.success("+10 XP! Tarefa concluída! 🎉");
+      }
     }
   };
 
@@ -227,8 +262,10 @@ const Planner = () => {
     const targetDate = format(day, "yyyy-MM-dd");
 
     return tasks.filter(t => {
-      if (!t.date) return false;
-      const taskDate = t.date.substring(0, 10); // Handle both "2024-12-18" and "2024-12-18T10:00:00"
+      const dateToUse = t.due_date || t.date;
+      if (!dateToUse) return false;
+
+      const taskDate = dateToUse.substring(0, 10); // Handle both "2024-12-18" and "2024-12-18T10:00:00"
       return taskDate === targetDate;
     });
   };
@@ -266,13 +303,19 @@ const Planner = () => {
       }
 
       if (result.data) {
-        // Safe access with fallback
-        const tasksToSave = result.data.tasks || [];
+        // Safe access with fallback logic
+        const rawData = result.data;
+        // Tenta encontrar o array correto independentemente da chave
+        // @ts-ignore
+        const tasksToSave = rawData?.tasks || rawData?.cronograma || rawData?.schedule || (Array.isArray(rawData) ? rawData : []);
 
         if (!Array.isArray(tasksToSave) || tasksToSave.length === 0) {
-          toast.error("A IA não gerou tarefas válidas. Tente novamente.");
+          console.error("Nenhuma tarefa encontrada no JSON:", rawData);
+          toast.error("A IA respondeu, mas não gerou tarefas válidas.");
           return;
         }
+
+        console.log("Tarefas extraídas com sucesso:", tasksToSave.length);
 
         // 1. Strict Reset: Delete ALL existing tasks/events for this user
         console.log("Resetting planner for user:", user.id);
@@ -283,22 +326,34 @@ const Planner = () => {
         // 2. Insert new tasks
         const tasksToInsert = tasksToSave.map((task) => ({
           user_id: user.id,
+          title: task.topic || task.subject,
           subject: task.subject,
           topic: task.topic,
-          date: task.date,
+          due_date: task.date,
           duration_minutes: task.duration_minutes,
           is_done: false
         }));
 
-        const { error: insertError } = await supabase
-          .from("study_tasks")
-          .insert(tasksToInsert);
+        // 1. Salva no banco e JÁ PEDE OS DADOS DE VOLTA (.select())
+        const { data: savedTasks, error } = await supabase
+          .from('study_tasks')
+          .insert(tasksToInsert)
+          .select(); // <--- CRUCIAL: Retorna as tarefas com o ID gerado
 
-        if (insertError) throw insertError;
+        if (error) {
+          console.error("Erro ao salvar:", error);
+          toast.error("Erro ao salvar cronograma.");
+        } else if (savedTasks) {
+          // 2. Atualiza o estado com os dados REAIS do banco (que possuem ID)
+          console.log("Tarefas salvas com IDs:", savedTasks);
+          setTasks(savedTasks as StudyTask[]);
 
-        // 3. Refresh UI immediately
-        await fetchTasks();
-        await fetchEvents();
+          toast.success("Cronograma criado e salvo!");
+
+          // Opcional: Atualizar a flag para evitar refetch desnecessário
+          isGeneratingRef.current = true;
+          setTimeout(() => { isGeneratingRef.current = false; }, 3000);
+        }
 
         // Show Strategy Summary!
         toast.success("Estratégia SISU Gerada! 🚀");
@@ -486,7 +541,7 @@ const Planner = () => {
                           )}
                         </div>
 
-                        <div className="space-y-2 pointer-events-none">
+                        <div className="space-y-2">
                           {dayTasks.length === 0 && (
                             <p className="text-xs text-muted-foreground text-center py-4 opacity-50">
                               Sem tarefas
@@ -495,7 +550,11 @@ const Planner = () => {
                           {dayTasks.map((task) => (
                             <div
                               key={task.id}
-                              className={`w-full text-left p-3 rounded-xl border transition-all ${task.is_done
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleTask(task.id, task.is_done);
+                              }}
+                              className={`cursor-pointer w-full text-left p-3 rounded-xl border transition-all ${task.is_done
                                 ? 'bg-white/5 border-white/10 opacity-60'
                                 : `${getSubjectColor(task.subject)}`
                                 }`}

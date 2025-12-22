@@ -320,7 +320,14 @@ export const createStudyPlan = async (
     const result = await generateWithFallback(prompt);
     const data = cleanAndParseJSON(result.response.text());
 
-    if (!Array.isArray(data)) throw new Error("Formato inválido");
+    if (!Array.isArray(data)) {
+      // Log para debug
+      console.log("ESTRUTURA DO JSON RECEBIDO (Possivel erro de formato):", Object.keys(data), data);
+      // Não lança erro imediatamente, deixa o Planner tentar extrair
+    } else {
+      console.log("ESTRUTURA DO JSON RECEBIDO (Array):", data.length, "itens");
+    }
+
     return { data, error: null };
   } catch (e: any) {
     console.error("Erro na chamada AI (Plan):", e);

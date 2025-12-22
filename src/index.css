@@ -41,7 +41,7 @@
     --glass-bg: 0 0% 100% / 0.08;
     --glass-border: 0 0% 100% / 0.15;
     --glass-hover: 0 0% 100% / 0.12;
-    
+
     /* Gradient Background */
     --gradient-start: 222 47% 8%;
     --gradient-mid: 250 47% 12%;
@@ -80,6 +80,7 @@
 }
 
 @layer components {
+
   /* Glass Card Effect */
   .glass {
     @apply bg-white/[0.08] backdrop-blur-xl border border-white/[0.15] shadow-2xl;
@@ -99,31 +100,35 @@
 
   /* Gradient Background */
   .gradient-bg {
-    background: linear-gradient(
-      135deg,
-      hsl(222 47% 8%) 0%,
-      hsl(250 47% 12%) 50%,
-      hsl(180 50% 8%) 100%
-    );
+    background: linear-gradient(135deg,
+        hsl(222 47% 8%) 0%,
+        hsl(250 47% 12%) 50%,
+        hsl(180 50% 8%) 100%);
   }
 
   .gradient-bg-animated {
-    background: linear-gradient(
-      135deg,
-      hsl(222 47% 8%) 0%,
-      hsl(250 47% 12%) 25%,
-      hsl(200 50% 10%) 50%,
-      hsl(180 50% 8%) 75%,
-      hsl(222 47% 8%) 100%
-    );
+    background: linear-gradient(135deg,
+        hsl(222 47% 8%) 0%,
+        hsl(250 47% 12%) 25%,
+        hsl(200 50% 10%) 50%,
+        hsl(180 50% 8%) 75%,
+        hsl(222 47% 8%) 100%);
     background-size: 400% 400%;
     animation: gradient-shift 15s ease infinite;
   }
 
   @keyframes gradient-shift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
   }
 
   /* Glass Button */
@@ -146,7 +151,7 @@
 
   /* Navigation */
   .nav-item {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/[0.08] transition-all duration-300;
+    @apply flex items-center gap-3 px-4 py-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/[0.08] transition-all duration-300;
   }
 
   .nav-item-active {
@@ -169,8 +174,15 @@
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
   }
 
   /* Pulse Glow */
@@ -179,8 +191,15 @@
   }
 
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px hsl(160 84% 39% / 0.3); }
-    50% { box-shadow: 0 0 40px hsl(160 84% 39% / 0.5); }
+
+    0%,
+    100% {
+      box-shadow: 0 0 20px hsl(160 84% 39% / 0.3);
+    }
+
+    50% {
+      box-shadow: 0 0 40px hsl(160 84% 39% / 0.5);
+    }
   }
 
   /* Slide Up Animation */
@@ -193,6 +212,7 @@
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -205,8 +225,13 @@
   }
 
   @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 
   /* Scale In */
@@ -219,6 +244,7 @@
       opacity: 0;
       transform: scale(0.95);
     }
+
     to {
       opacity: 1;
       transform: scale(1);
@@ -229,5 +255,17 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* No Scrollbar Utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 }

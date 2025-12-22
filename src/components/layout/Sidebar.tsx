@@ -1,16 +1,17 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  LayoutDashboard, 
-  Beaker, 
-  CalendarDays, 
+import {
+  LayoutDashboard,
+  Beaker,
+  CalendarDays,
   LogOut,
   Flame,
   FileText,
   Brain,
   MessageSquare,
   Timer,
-  Sparkles
+  Sparkles,
+  Trophy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
@@ -22,6 +23,7 @@ const navItems = [
   { to: "/dashboard/flashcards", icon: Brain, label: "Flashcards", premium: true },
   { to: "/dashboard/chat", icon: MessageSquare, label: "Chat IA" },
   { to: "/dashboard/planner", icon: CalendarDays, label: "Agenda" },
+  { to: "/dashboard/ranking", icon: Trophy, label: "Ranking" },
   { to: "/dashboard/focus", icon: Timer, label: "Focus Room" },
 ];
 
@@ -33,7 +35,7 @@ const Sidebar = () => {
   return (
     <div className="glass h-full w-64 rounded-3xl p-5 flex flex-col">
       {/* Logo */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-4">
         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
           <Sparkles className="h-6 w-6 text-white" />
         </div>
@@ -45,7 +47,7 @@ const Sidebar = () => {
 
       {/* Streak Badge */}
       {profile && profile.streak_count !== undefined && profile.streak_count > 0 && (
-        <div className="streak-badge mb-4 justify-center">
+        <div className="streak-badge mb-2 justify-center">
           <Flame className="h-5 w-5" />
           <span>{profile.streak_count} dias</span>
         </div>
@@ -53,30 +55,30 @@ const Sidebar = () => {
 
       {/* XP Badge */}
       {profile && profile.xp_points !== undefined && profile.xp_points > 0 && (
-        <div className="glass rounded-xl px-4 py-2 mb-6 text-center">
+        <div className="glass rounded-xl px-4 py-2 mb-4 text-center">
           <span className="text-sm text-muted-foreground">XP Total: </span>
           <span className="font-bold text-primary">{profile.xp_points}</span>
         </div>
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto min-h-0 pb-2 no-scrollbar">
         {navItems.map((item) => {
-          const isActive = item.end 
-            ? location.pathname === item.to 
+          const isActive = item.end
+            ? location.pathname === item.to
             : location.pathname.startsWith(item.to);
-          
+
           return (
             <NavLink
               key={item.to}
               to={item.to}
               className={cn(
-                "nav-item",
+                "nav-item shrink-0 h-9",
                 isActive && "nav-item-active"
               )}
             >
-              <item.icon className="h-5 w-5" />
-              <span className="flex-1">{item.label}</span>
+              <item.icon className="h-4 w-4" />
+              <span className="flex-1 text-sm">{item.label}</span>
               {item.premium && !profile?.is_pro && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
                   PRO
@@ -88,9 +90,9 @@ const Sidebar = () => {
       </nav>
 
       {/* User Info & Logout */}
-      <div className="pt-4 border-t border-white/10">
+      <div className="mt-auto pt-4 border-t border-white/10 shrink-0">
         <div className="flex items-center gap-3 mb-4 px-2">
-          <div className="w-10 h-10 rounded-full bg-secondary/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-secondary/30 flex items-center justify-center shrink-0">
             <span className="text-sm font-medium text-foreground">
               {profile?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "?"}
             </span>

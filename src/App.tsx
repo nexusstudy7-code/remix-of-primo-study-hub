@@ -14,6 +14,7 @@ import Planner from "./pages/Planner";
 import Essay from "./pages/Essay";
 import Flashcards from "./pages/Flashcards";
 import Chat from "./pages/Chat";
+import Ranking from "./pages/Ranking";
 import FocusRoom from "./pages/FocusRoom";
 import NotFound from "./pages/NotFound";
 
@@ -38,36 +39,37 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<Auth />} />
-            
-            {/* Protected Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="lab" element={<QuestionLab />} />
-              <Route path="planner" element={<Planner />} />
-              <Route path="essay" element={<Essay />} />
-              <Route path="flashcards" element={<Flashcards />} />
-              <Route path="chat" element={<Chat />} />
-              <Route path="focus" element={<FocusRoom />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Landing />} />
+                <Route path="/auth" element={<Auth />} />
+
+                {/* Protected Routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<Dashboard />} />
+                  <Route path="lab" element={<QuestionLab />} />
+                  <Route path="planner" element={<Planner />} />
+                  <Route path="essay" element={<Essay />} />
+                  <Route path="flashcards" element={<Flashcards />} />
+                  <Route path="chat" element={<Chat />} />
+                  <Route path="ranking" element={<Ranking />} />
+                  <Route path="focus" element={<FocusRoom />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
     </div>
   );
 };

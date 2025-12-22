@@ -20,8 +20,11 @@ interface Question {
   explanation: string;
 }
 
+import { useProfile } from "@/hooks/useProfile";
+
 const QuestionLab = () => {
   const { user } = useAuth();
+  const { addXP } = useProfile();
   const { saveQuestion } = useSavedQuestions();
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
@@ -84,6 +87,8 @@ const QuestionLab = () => {
       toast.success("Resposta Certa! 🎯");
       if (user) {
         await updateStreak(user.id);
+        console.log("Chamando addXP para o usuário:", user.id);
+        await addXP(10);
         window.dispatchEvent(new Event("profile_updated"));
       }
     }
