@@ -38,43 +38,43 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
         </div>
 
         {/* Stats: Streak & XP */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2">
 
           {/* Level Display */}
-          <div className="glass-strong rounded-2xl p-6 text-center min-w-[140px]">
+          <div className="glass-strong rounded-2xl p-2 md:p-6 text-center min-w-0">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <div className="w-10 h-10 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center">
-                <span className="text-xs font-bold text-secondary">Lvl</span>
+              <div className="w-6 h-6 md:w-10 md:h-10 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center">
+                <span className="text-[10px] md:text-xs font-bold text-secondary">Lvl</span>
               </div>
             </div>
-            <p className="text-4xl font-bold text-foreground">
+            <p className="text-lg md:text-4xl font-bold text-foreground truncate">
               {profile?.level || 1}
             </p>
-            <p className="text-sm text-muted-foreground">Nível Atual</p>
+            <p className="text-[10px] md:text-sm text-muted-foreground uppercase truncate">Nível</p>
           </div>
 
           {/* XP Display */}
-          <div className="glass-strong rounded-2xl p-6 text-center min-w-[140px]">
+          <div className="glass-strong rounded-2xl p-2 md:p-6 text-center min-w-0">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <div className="w-10 h-10 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center">
-                <span className="text-xs font-bold text-primary/80">XP</span>
+              <div className="w-6 h-6 md:w-10 md:h-10 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center">
+                <span className="text-[10px] md:text-xs font-bold text-primary/80">XP</span>
               </div>
             </div>
-            <p className="text-4xl font-bold text-foreground">
+            <p className="text-lg md:text-4xl font-bold text-foreground truncate">
               {profile?.xp || 0}
             </p>
-            <p className="text-sm text-muted-foreground">XP Total</p>
+            <p className="text-[10px] md:text-sm text-muted-foreground uppercase truncate">XP Total</p>
           </div>
 
           {/* On Fire Streak */}
-          <div className="glass-strong rounded-2xl p-6 text-center min-w-[140px]">
+          <div className="glass-strong rounded-2xl p-2 md:p-6 text-center min-w-0">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <Flame className="h-8 w-8 text-orange-400" />
+              <Flame className="h-5 w-5 md:h-8 md:w-8 text-orange-400" />
             </div>
-            <p className="text-4xl font-bold text-foreground">
+            <p className="text-lg md:text-4xl font-bold text-foreground truncate">
               {profile?.streak_count || 0}
             </p>
-            <p className="text-sm text-muted-foreground">Dias On Fire</p>
+            <p className="text-[10px] md:text-sm text-muted-foreground uppercase truncate">On Fire</p>
           </div>
         </div>
       </div>
